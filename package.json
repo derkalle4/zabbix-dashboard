@@ -1,0 +1,30 @@
+{
+  "name": "zabbix-dashboard",
+  "version": "0.0.1",
+  "description": "A simple zabbix dashboard for the web.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "solid-js": "^1.0.0",
+    "bootstrap": "^5.0.0"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0",
+    "vite-plugin-solid": "^2.0.0"
+  },
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/derkalle4/zabbix-dashboard.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/derkalle4/zabbix-dashboard/issues"
+  },
+  "homepage": "https://github.com/derkalle4/zabbix-dashboard#readme"
+}
