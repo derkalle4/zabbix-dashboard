@@ -8,6 +8,7 @@ This is work in progress and not suitable for broader adoption - for an working 
 
 After setting up the project, you can run the development server with:
 ```
+npm install -D vite
 npm run dev
 ```
 
