@@ -15,6 +15,7 @@ const HOST_GROUPS_CONFIG = [
         groupName: 'Counterstrike',
         hosts: [
             {
+                displayName: "Ballerbude",
                 hostName: 'CounterStrike.Party Ballerbude',
                 itemConfigs: [
                     {
@@ -34,6 +35,7 @@ const HOST_GROUPS_CONFIG = [
                 ]
             },
             {
+                displayName: "Conquest",
                 hostName: 'CounterStrike.Party Conquest',
                 itemConfigs: [
                     {
@@ -51,7 +53,9 @@ const HOST_GROUPS_CONFIG = [
                         displayUnits: ""
                     },
                 ]
-            },            {
+            },
+            {
+                displayName: "Wettkampf",
                 hostName: 'CounterStrike.Party Wettkampf',
                 itemConfigs: [
                     {
@@ -73,103 +77,70 @@ const HOST_GROUPS_CONFIG = [
         ]
     },
     {
-            groupName: 'Battlefield',
-            hosts: [
-                {
-                    hostName: 'Battlefield.onl Conquest',
-                    itemConfigs: [
-                        {
-                            type: "compound",
-                            displayName: "Players",
-                            itemNames: { current: "players", total: "max_players" },
-                            sourceUnits: "",
-                            displayUnits: "",
-                        },
-                        {
-                            type: "single",
-                            itemName: "map",
-                            displayName: "Map",
-                            sourceUnits: "",
-                            displayUnits: ""
-                        },
-                    ]
-                },
-                {
-                    hostName: 'Battlefield.onl Rushers Paradise',
-                    itemConfigs: [
-                        {
-                            type: "compound",
-                            displayName: "Players",
-                            itemNames: { current: "players", total: "max_players" },
-                            sourceUnits: "",
-                            displayUnits: "",
-                        },
-                        {
-                            type: "single",
-                            itemName: "map",
-                            displayName: "Map",
-                            sourceUnits: "",
-                            displayUnits: ""
-                        },
-                    ]
-                },            {
-                    hostName: 'Battlefield.onl SquadSmash',
-                    itemConfigs: [
-                        {
-                            type: "compound",
-                            displayName: "Players",
-                            itemNames: { current: "players", total: "max_players" },
-                            sourceUnits: "",
-                            displayUnits: "",
-                        },
-                        {
-                            type: "single",
-                            itemName: "map",
-                            displayName: "Map",
-                            sourceUnits: "",
-                            displayUnits: ""
-                        },
-                    ]
-                },
-                {
-                    hostName: 'Battlefield.onl Rushers Paradise Vietnam',
-                    itemConfigs: [
-                        {
-                            type: "compound",
-                            displayName: "Players",
-                            itemNames: { current: "players", total: "max_players" },
-                            sourceUnits: "",
-                            displayUnits: "",
-                        },
-                        {
-                            type: "single",
-                            itemName: "map",
-                            displayName: "Map",
-                            sourceUnits: "",
-                            displayUnits: ""
-                        },
-                    ]
-                },            {
-                    hostName: 'Battlefield.onl SquadSmash Vietnam',
-                    itemConfigs: [
-                        {
-                            type: "compound",
-                            displayName: "Players",
-                            itemNames: { current: "players", total: "max_players" },
-                            sourceUnits: "",
-                            displayUnits: "",
-                        },
-                        {
-                            type: "single",
-                            itemName: "map",
-                            displayName: "Map",
-                            sourceUnits: "",
-                            displayUnits: ""
-                        },
-                    ]
-                },
-            ]
-        }
+        groupName: 'Battlefield',
+        hosts: [
+            {
+                displayName: "Conquest",
+                hostName: 'Battlefield.onl Conquest',
+                itemConfigs: [
+                    {
+                        type: "compound",
+                        displayName: "Players",
+                        itemNames: { current: "players", total: "max_players" },
+                        sourceUnits: "",
+                        displayUnits: "",
+                    },
+                    {
+                        type: "single",
+                        itemName: "map",
+                        displayName: "Map",
+                        sourceUnits: "",
+                        displayUnits: ""
+                    },
+                ]
+            },
+            {
+                displayName: "Rushers Paradise",
+                hostName: 'Battlefield.onl Rushers Paradise',
+                itemConfigs: [
+                    {
+                        type: "compound",
+                        displayName: "Players",
+                        itemNames: { current: "players", total: "max_players" },
+                        sourceUnits: "",
+                        displayUnits: "",
+                    },
+                    {
+                        type: "single",
+                        itemName: "map",
+                        displayName: "Map",
+                        sourceUnits: "",
+                        displayUnits: ""
+                    },
+                ]
+            },
+            {
+                displayName: "SquadSmash",
+                hostName: 'Battlefield.onl SquadSmash',
+                itemConfigs: [
+                    {
+                        type: "compound",
+                        displayName: "Players",
+                        itemNames: { current: "players", total: "max_players" },
+                        sourceUnits: "",
+                        displayUnits: "",
+                    },
+                    {
+                        type: "single",
+                        itemName: "map",
+                        displayName: "Map",
+                        sourceUnits: "",
+                        displayUnits: ""
+                    },
+                ]
+            },
+        ]
+    }
 ];
 
 export { ZABBIX_CONFIG, HOST_GROUPS_CONFIG };
