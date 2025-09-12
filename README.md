@@ -2,6 +2,8 @@
 
 A modern single-page application built with Vite that provides a clean, responsive interface for monitoring Zabbix hosts. Features Bootstrap 5 styling for an intuitive user experience. This has been created because I was looking for an simple way to publically display statistics about my infrastructure for everyone. Check out our running dashboard at https://status.kandru.de.
 
+![Screenshot](screenshot.png)
+
 ## 🚀 Development
 
 ### Zabbix Configuration
