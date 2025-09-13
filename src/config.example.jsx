@@ -22,6 +22,7 @@ const HOST_GROUPS_CONFIG = [
             {
                 displayName: "Ballerbude",
                 hostName: 'CounterStrike.Party Ballerbude',
+                type: 'DefaultCard', // Optional, defaults to DefaultCard
                 itemConfigs: [
                     {
                         type: "compound",

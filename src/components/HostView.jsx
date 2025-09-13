@@ -1,11 +1,26 @@
 import { For, Show } from 'solid-js';
 import DefaultCard from './cards/DefaultCard';
+import GameserverCard from './cards/GameserverCard';
 
 function HostView(props) {
   const hostDisplayName = () => props.host?.displayName || props.host?.hostName || "Host";
   const zabbixHostId = () => props.host?.zabbixHostId;
   const rawItemsForHost = () => props.host?.items;
   const itemConfigs = () => props.host?.itemConfigs || [];
+
+  const getCardComponent = () => {
+    const cardType = props.host?.type || 'DefaultCard';
+    // You can add more card types here as needed
+    switch (cardType) {
+      case 'GameserverCard':
+        return GameserverCard;
+      case 'DefaultCard':
+      default:
+        return DefaultCard;
+    }
+  };
+
+  const CardComponent = getCardComponent();
 
   return (
     <div class="host-view mb-3">
@@ -28,7 +43,7 @@ function HostView(props) {
       </Show>
       
       <Show when={!props.host?.error && zabbixHostId() && (rawItemsForHost() && rawItemsForHost()?.length > 0 || itemConfigs().some(ic => ic.type === 'compound')) && itemConfigs().length > 0}>
-        <DefaultCard
+        <CardComponent
           hostDisplayName={hostDisplayName()}
           itemConfigs={itemConfigs()}
           rawItemsForHost={rawItemsForHost()} 
