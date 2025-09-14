@@ -1,7 +1,7 @@
 import { For } from 'solid-js';
 import SingleItem from '../items/SingleItem';
 import CompoundItem from '../items/CompoundItem';
-import LineChartItem from '../items/LineChart';
+import LineChartItem from '../items/LineChartItem';
 
 function GameserverCard(props) {
   const host = () => props.host;
