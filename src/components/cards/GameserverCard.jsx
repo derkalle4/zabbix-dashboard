@@ -1,6 +1,7 @@
 import { For, Show, Match, Switch } from 'solid-js';
 import SingleItem from '../items/SingleItem';
 import CompoundItem from '../items/CompoundItem';
+import LineChartItem from '../items/LineChart';
 
 function GameserverCard(props) {
   const hostDisplayName = () => props.hostDisplayName;
@@ -47,6 +48,13 @@ function GameserverCard(props) {
                   </Match>
                   <Match when={itemConf.type === "compound"}>
                     <CompoundItem 
+                      itemConf={itemConf}
+                      rawItemsForHost={rawItemsForHost()}
+                      zabbixHostId={zabbixHostId()}
+                    />
+                  </Match>
+                  <Match when={itemConf.type === "linechart"}>
+                    <LineChartItem 
                       itemConf={itemConf}
                       rawItemsForHost={rawItemsForHost()}
                       zabbixHostId={zabbixHostId()}

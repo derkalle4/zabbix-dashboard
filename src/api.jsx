@@ -130,3 +130,26 @@ export async function getItemsData(authToken, hostIds, itemKeys = null) {
         throw error;
     }
 }
+
+export async function getHistoryData(authToken, itemId, timeFrom, timeTill = null) {
+    if (!authToken) throw new Error("Authentication token is required for getHistoryData.");
+    
+    try {
+        const params = {
+            output: 'extend',
+            itemids: [itemId],
+            time_from: timeFrom,
+            sortfield: 'clock',
+            sortorder: 'ASC'
+        };
+        
+        if (timeTill) {
+            params.time_till = timeTill;
+        }
+        
+        return await zabbixApiRequest('history.get', params, authToken);
+    } catch (error) {
+        console.error(`Failed to get history data for item ${itemId}:`, error);
+        throw error;
+    }
+}

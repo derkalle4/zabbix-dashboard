@@ -39,6 +39,15 @@ const HOST_GROUPS_CONFIG = [
                         sourceUnits: "",
                         displayUnits: ""
                     },
+                    {
+                        type: "linechart",
+                        itemName: "players", // must match an item name from Zabbix
+                        itemType: "integer", // "float" or "integer"
+                        minValue: 0, // can be a number or the name of another item
+                        maxValue: "max_players", // can be a number or the name of another item
+                        height: 30,
+                        historyHours: 24,
+                    },
                 ]
             },
             {
