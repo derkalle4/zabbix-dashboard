@@ -38,7 +38,7 @@ const CHART_OPTIONS_BASE = {
   }
 };
 
-function LineChart(props) {
+function LineChartItem(props) {
   let chartRef;
   let chartInstance;
   let updateTimeout;
@@ -167,4 +167,4 @@ function LineChart(props) {
   );
 }
 
-export default LineChart;
+export default LineChartItem;
