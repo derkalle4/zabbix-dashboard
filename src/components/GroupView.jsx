@@ -1,58 +1,52 @@
-import { For } from 'solid-js';
+import { For, createMemo } from 'solid-js';
 import HostView from './HostView';
 
 function GroupView(props) {
+  const sortedHosts = createMemo(() => {
+    if (!props.group.hostsData || !props.group.sort_by) {
+      return props.group.hostsData || [];
+    }
+
+    const { sort_by: sortKey, sort_type: sortType = 'numeric', sort_desc } = props.group;
+    
+    return [...props.group.hostsData].sort((a, b) => {
+      const aItem = a.items?.find(item => item.name === sortKey);
+      const bItem = b.items?.find(item => item.name === sortKey);
+      
+      const aValue = aItem?.lastvalue;
+      const bValue = bItem?.lastvalue;
+
+      if (aValue === undefined && bValue === undefined) return 0;
+      if (aValue === undefined) return sort_desc ? -1 : 1;
+      if (bValue === undefined) return sort_desc ? 1 : -1;
+      
+      let comparison;
+      if (sortType === 'numeric') {
+        const aNum = Number(aValue);
+        const bNum = Number(bValue);
+        comparison = (!isNaN(aNum) && !isNaN(bNum) && isFinite(aNum) && isFinite(bNum))
+          ? aNum - bNum
+          : String(aValue).localeCompare(String(bValue));
+      } else {
+        comparison = String(aValue).localeCompare(String(bValue));
+      }
+      
+      return sort_desc ? -comparison : comparison;
+    });
+  });
+
+  const columnClasses = () => {
+    const { column_size = '12', column_size_medium = '6', column_size_large = '4' } = props.group;
+    return `col-${column_size} col-md-${column_size_medium} col-lg-${column_size_large}`;
+  };
+
   return (
     <div class="group-view">
       <h2 class="text-xl font-semibold mb-3">{props.group.groupName}</h2>
       <div class="row g-4">
-        <For each={props.group.hostsData ? [...props.group.hostsData].sort((a, b) => {
-          if (props.group.sort_by !== undefined) {
-            const sortKey = props.group.sort_by;
-            const sortType = props.group.sort_type || 'numeric';
-            
-            // Find the item by name and get its lastvalue
-            const aItem = a.items?.find(item => item.name === sortKey);
-            const bItem = b.items?.find(item => item.name === sortKey);
-            
-            const aValue = aItem?.lastvalue;
-            const bValue = bItem?.lastvalue;
-
-            // Handle undefined values - skip sorting if both are undefined
-            if (aValue === undefined && bValue === undefined) {
-              return 0;
-            }
-            if (aValue === undefined) {
-              return props.group.sort_desc ? -1 : 1; // undefined goes to end
-            }
-            if (bValue === undefined) {
-              return props.group.sort_desc ? 1 : -1; // undefined goes to end
-            }
-            
-            let comparison;
-            if (sortType === 'numeric') {
-              // Convert to numbers
-              const aNum = Number(aValue);
-              const bNum = Number(bValue);
-              // Check if we got valid numbers
-              if (!isNaN(aNum) && !isNaN(bNum) && isFinite(aNum) && isFinite(bNum)) {
-                comparison = aNum - bNum; // ascending order
-              } else {
-                // Fallback to string comparison if numbers are invalid
-                comparison = String(aValue).localeCompare(String(bValue));
-              }
-            } else {
-              // string comparison
-              comparison = String(aValue).localeCompare(String(bValue));
-            }
-            
-            // Apply sort direction (default ascending, reverse if sort_desc is true)
-            return props.group.sort_desc ? -comparison : comparison;
-          }
-          return 0;
-        }) : []}>
+        <For each={sortedHosts()}>
           {(host) => (
-            <div class={`col-${props.group.column_size || '12'} col-md-${props.group.column_size_medium || '6'} col-lg-${props.group.column_size_large || '4'}`}>
+            <div class={columnClasses()}>
               <HostView host={host} />
             </div>
           )}

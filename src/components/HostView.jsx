@@ -3,52 +3,42 @@ import DefaultCard from './cards/DefaultCard';
 import GameserverCard from './cards/GameserverCard';
 
 function HostView(props) {
-  const hostDisplayName = () => props.host?.displayName || props.host?.hostName || "Host";
-  const zabbixHostId = () => props.host?.zabbixHostId;
-  const rawItemsForHost = () => props.host?.items;
-  const itemConfigs = () => props.host?.itemConfigs || [];
+  const host = () => props.host;
+  const hostDisplayName = () => host()?.displayName || host()?.hostName || "Host";
+  const zabbixHostId = () => host()?.zabbixHostId;
+  const rawItemsForHost = () => host()?.items;
+  const widgets = () => host()?.widgets || [];
 
-  const getCardComponent = () => {
-    const cardType = props.host?.type || 'DefaultCard';
-    // You can add more card types here as needed
-    switch (cardType) {
-      case 'GameserverCard':
-        return GameserverCard;
-      case 'DefaultCard':
-      default:
-        return DefaultCard;
-    }
-  };
-
-  const CardComponent = getCardComponent();
+  const hasError = () => host()?.error;
+  const hasItems = () => rawItemsForHost()?.length > 0;
+  const hasCompoundWidgets = () => widgets().some(ic => ic.type === 'compound');
+  const hasWidgets = () => widgets().length > 0;
+  const shouldShowCard = () => !hasError() && zabbixHostId() && (hasItems() || hasCompoundWidgets()) && hasWidgets();
 
   return (
     <div class="host-view mb-3">
-      <Show when={props.host?.error}>
+      <Show when={hasError()}>
         <div class="alert alert-danger p-2" role="alert">
-          {hostDisplayName()}: {props.host.error}
+          {hostDisplayName()}: {host().error}
         </div>
       </Show>
 
-      <Show when={!props.host?.error && zabbixHostId() && itemConfigs().length === 0}>
+      <Show when={!hasError() && zabbixHostId() && !hasWidgets()}>
         <div class="alert alert-info p-2" role="alert">
           {hostDisplayName()}: No items configured for this host in the dashboard configuration.
         </div>
       </Show>
 
-      <Show when={!props.host?.error && zabbixHostId() && itemConfigs().length > 0 && (!rawItemsForHost() || (Array.isArray(rawItemsForHost()) && rawItemsForHost().length === 0))}>
+      <Show when={!hasError() && zabbixHostId() && hasWidgets() && !hasItems() && !hasCompoundWidgets()}>
         <div class="alert alert-warning p-2" role="alert">
           {hostDisplayName()}: Items are configured, but no (or empty) raw item data was found from Zabbix for this host.
         </div>
       </Show>
       
-      <Show when={!props.host?.error && zabbixHostId() && (rawItemsForHost() && rawItemsForHost()?.length > 0 || itemConfigs().some(ic => ic.type === 'compound')) && itemConfigs().length > 0}>
-        <CardComponent
-          hostDisplayName={hostDisplayName()}
-          itemConfigs={itemConfigs()}
-          rawItemsForHost={rawItemsForHost()} 
-          zabbixHostId={zabbixHostId()} 
-        />
+      <Show when={shouldShowCard()}>
+        <Show when={host()?.type === 'GameserverCard'} fallback={<DefaultCard host={host()} />}>
+          <GameserverCard host={host()} />
+        </Show>
       </Show>
     </div>
   );

@@ -1,101 +1,176 @@
 import { createSignal, createEffect, onCleanup, For } from 'solid-js';
 import { APP_CONFIG, HOST_GROUPS_CONFIG } from '../config.jsx';
-import { loginToZabbix, getHostsByNames, getItemsData } from '../api.jsx';
+import { loginToZabbix, getHostsByNames, getItemsData, getHistoryData } from '../api.jsx';
 import GroupView from './GroupView';
-
 
 function Dashboard() {
     const [dashboardData, setDashboardData] = createSignal([]);
     const [isLoading, setIsLoading] = createSignal(true);
     const [error, setError] = createSignal(null);
-    // Load token from localStorage on initialization, fallback to null if localStorage is not available
     const [authToken, setAuthToken] = createSignal(
         typeof window !== 'undefined' ? localStorage.getItem('zabbixAuthToken') : null
     );
 
+    const clearAuth = () => {
+        setAuthToken(null);
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('zabbixAuthToken');
+        }
+    };
+
+    const handleAuthError = (err) => {
+        const message = err.message?.toLowerCase() || '';
+        if (message.includes('not authorised') || message.includes('session id') || message.includes('invalid session')) {
+            clearAuth();
+        }
+    };
+
+    const getAuthToken = async () => {
+        let currentAuthToken = authToken();
+        if (currentAuthToken) return currentAuthToken;
+
+        const loginResult = await loginToZabbix();
+        const newAuthToken = typeof loginResult === 'string' 
+            ? loginResult 
+            : loginResult?.token || loginResult?.sessionid;
+
+        if (!newAuthToken) {
+            throw new Error("Authentication failed: No token received.");
+        }
+
+        setAuthToken(newAuthToken);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('zabbixAuthToken', newAuthToken);
+        }
+        return newAuthToken;
+    };
+
+    const createDataMaps = (allItems, allHistoryData) => {
+        const itemsByHostId = new Map();
+        const historyByItemId = new Map();
+
+        allItems.forEach(item => {
+            if (!itemsByHostId.has(item.hostid)) {
+                itemsByHostId.set(item.hostid, []);
+            }
+            itemsByHostId.get(item.hostid).push(item);
+        });
+
+        allHistoryData.forEach(historyPoint => {
+            if (!historyByItemId.has(historyPoint.itemid)) {
+                historyByItemId.set(historyPoint.itemid, []);
+            }
+            historyByItemId.get(historyPoint.itemid).push(historyPoint);
+        });
+
+        return { itemsByHostId, historyByItemId };
+    };
+
+    const collectHistoryItemIds = (hostIdMap, itemsByHostId) => {
+        const historyItemIds = [];
+        
+        HOST_GROUPS_CONFIG.forEach(groupConfig => {
+            groupConfig.hosts.forEach(hostConfig => {
+                const hostId = hostIdMap.get(hostConfig.hostName);
+                if (!hostId || !hostConfig.widgets) return;
+
+                const itemsForHost = itemsByHostId.get(hostId) || [];
+                hostConfig.widgets.forEach(itemConfig => {
+                    if (itemConfig.type.toLowerCase() === 'linechart' && itemConfig.itemName) {
+                        const item = itemsForHost.find(item => item.name === itemConfig.itemName);
+                        if (item) {
+                            historyItemIds.push(item.itemid);
+                        }
+                    }
+                });
+            });
+        });
+
+        return historyItemIds;
+    };
+
+    const processGroupData = (hostIdMap, itemsByHostId, historyByItemId) => {
+        return HOST_GROUPS_CONFIG.map(groupConfig => ({
+            ...groupConfig,
+            hostsData: groupConfig.hosts.map(hostConfig => {
+                const hostId = hostIdMap.get(hostConfig.hostName);
+                
+                if (!hostId) {
+                    return {
+                        ...hostConfig,
+                        zabbixHostId: null,
+                        items: [],
+                        historyData: new Map(),
+                        error: `Host not found in Zabbix.`
+                    };
+                }
+                
+                const itemsForHost = itemsByHostId.get(hostId) || [];
+                const hostHistoryData = new Map();
+                
+                hostConfig.widgets?.forEach(widget => {
+                    if (widget.type.toLowerCase() === 'linechart' && widget.itemName) {
+                        const item = itemsForHost.find(item => item.name === widget.itemName);
+                        if (item) {
+                            const historyForItem = historyByItemId.get(item.itemid) || [];
+                            hostHistoryData.set(widget.itemName, historyForItem);
+                        }
+                    }
+                });
+                
+                return { 
+                    ...hostConfig, 
+                    zabbixHostId: hostId, 
+                    items: itemsForHost,
+                    historyData: hostHistoryData
+                };
+            })
+        }));
+    };
+
     async function fetchData() {
         setIsLoading(true);
         setError(null);
-        let currentAuthToken = authToken();
 
         try {
-            // 1. Login if no token is currently available (either not in state or not in localStorage).
-            if (!currentAuthToken) {
-                const loginResult = await loginToZabbix();
-                let newAuthToken = null;
+            const currentAuthToken = await getAuthToken();
+            
+            const allHostNames = [...new Set(
+                HOST_GROUPS_CONFIG.flatMap(group => 
+                    group.hosts.map(h => h.hostName)
+                )
+            )];
 
-                // Extract token from Zabbix API response
-                if (typeof loginResult === 'string') {
-                    newAuthToken = loginResult;
-                } else if (loginResult && loginResult.token) {
-                    newAuthToken = loginResult.token;
-                } else if (loginResult && loginResult.sessionid) { // Older Zabbix versions might use sessionid
-                    newAuthToken = loginResult.sessionid;
-                }
-
-                if (newAuthToken) {
-                    currentAuthToken = newAuthToken;
-                    setAuthToken(currentAuthToken);
-                    // Save the new token to localStorage if available
-                    if (typeof window !== 'undefined') {
-                        localStorage.setItem('zabbixAuthToken', currentAuthToken);
-                    }
-                } else {
-                    console.error("Login response did not contain a token:", loginResult);
-                    throw new Error("Authentication failed: No token received.");
-                }
+            const allZabbixHosts = await getHostsByNames(currentAuthToken, allHostNames);
+            const hostIdMap = new Map(allZabbixHosts.map(zh => [zh.name, zh.hostid]));
+            const allHostIds = Array.from(hostIdMap.values()).filter(Boolean);
+            
+            const allItems = await getItemsData(currentAuthToken, allHostIds);
+            const { itemsByHostId } = createDataMaps(allItems, []);
+            
+            const historyItemIds = collectHistoryItemIds(hostIdMap, itemsByHostId);
+            
+            let allHistoryData = [];
+            if (historyItemIds.length > 0) {
+                const historyTimeFrom = Math.floor(Date.now() / 1000) - (24 * 60 * 60);
+                allHistoryData = await getHistoryData(currentAuthToken, historyItemIds, historyTimeFrom);
             }
 
-            const processedGroupData = [];
-
-            for (const groupConfig of HOST_GROUPS_CONFIG) {
-                const hostNames = groupConfig.hosts.map(h => h.hostName);
-                if (hostNames.length === 0) {
-                    processedGroupData.push({ ...groupConfig, hostsData: [] });
-                    continue;
-                }
-
-                const zabbixHosts = await getHostsByNames(currentAuthToken, hostNames);
-                const hostIdMap = new Map(zabbixHosts.map(zh => [zh.name, zh.hostid]));
-
-                const hostsData = [];
-                for (const hostConfig of groupConfig.hosts) {
-                    const hostId = hostIdMap.get(hostConfig.hostName);
-                    if (!hostId) {
-                        console.warn(`Host ${hostConfig.hostName} not found in Zabbix or no ID returned.`);
-                        hostsData.push({
-                            ...hostConfig,
-                            zabbixHostId: null,
-                            items: [],
-                            error: `Host not found in Zabbix.`
-                        });
-                        continue;
-                    }
-                    const itemsRaw = await getItemsData(currentAuthToken, [hostId], []);
-                    hostsData.push({ ...hostConfig, zabbixHostId: hostId, items: itemsRaw });
-                }
-                processedGroupData.push({ ...groupConfig, hostsData: hostsData });
-            }
-
+            const { historyByItemId } = createDataMaps([], allHistoryData);
+            const processedGroupData = processGroupData(hostIdMap, itemsByHostId, historyByItemId);
+            
             setDashboardData(processedGroupData);
         } catch (err) {
             console.error("Failed to fetch dashboard data:", err);
             setError(err.message || "An unknown error occurred.");
-            // If auth error (e.g., "Not authorised", "Session ID" issues),
-            // clear token from state and localStorage to force re-login on next attempt.
-            if (err.message && (err.message.includes("Not authorised") || err.message.includes("Session ID") || err.message.toLowerCase().includes("invalid session"))) {
-                setAuthToken(null);
-                if (typeof window !== 'undefined') {
-                    localStorage.removeItem('zabbixAuthToken');
-                }
-            }
+            handleAuthError(err);
         } finally {
             setIsLoading(false);
         }
     }
 
     createEffect(() => {
-        fetchData(); // Initial fetch
+        fetchData();
         const intervalId = setInterval(fetchData, APP_CONFIG.reloadInterval);
         onCleanup(() => clearInterval(intervalId));
     });
@@ -107,9 +182,7 @@ function Dashboard() {
             {error() && <p class="text-red-500">Error: {error()}</p>}
             {!isLoading() && !error() && (
                 <For each={dashboardData()}>
-                    {(group) => (
-                        <GroupView group={group} />
-                    )}
+                    {(group) => <GroupView group={group} />}
                 </For>
             )}
         </div>

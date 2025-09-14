@@ -2,87 +2,80 @@ import { Show, createMemo } from 'solid-js';
 
 function SingleItem(props) {
   const processedData = createMemo(() => {
-    if (!props.itemConf || !props.rawItemsForHost || !props.zabbixHostId) {
+    const { itemName, displayUnits, sourceUnits, decimals, units: confUnits = "" } = props.itemConf || {};
+    const rawItems = props.host?.items;
+    const hostId = props.host?.zabbixHostId;
+
+    if (!itemName || !Array.isArray(rawItems) || !hostId) {
       return {
         value: "N/A",
-        units: "",
-        error: "Configuration or raw data missing for SingleItem processing",
-        state: null,
+        units: confUnits,
+        error: !itemName ? "Configuration missing" : !hostId ? "Host ID missing" : "Raw items data not available",
+        state: 0,
       };
     }
 
-    const { itemConf, rawItemsForHost, zabbixHostId } = props;
-    const configItemName = itemConf.itemName;
+    const zabbixItem = rawItems.find(item => 
+      item?.name?.toLowerCase() === itemName.toLowerCase() && item.hostid === hostId
+    );
 
-    if (!Array.isArray(rawItemsForHost)) {
-        return {
-            value: "N/A",
-            units: itemConf.units || "",
-            error: "Raw items data is not available or not an array.",
-            state: 0,
-        };
+    if (!zabbixItem) {
+      return {
+        value: "N/A (not found)",
+        units: confUnits,
+        error: `Item '${itemName}' not found for host ID '${hostId}'.`,
+        state: 0,
+      };
     }
 
-    const zabbixItem = rawItemsForHost.find(item => {
-      const itemNameLower = item && item.name && typeof item.name === 'string' ? item.name.toLowerCase() : null;
-      const configItemNameLower = configItemName && typeof configItemName === 'string' ? configItemName.toLowerCase() : null;
-      return itemNameLower && configItemNameLower && itemNameLower === configItemNameLower && item.hostid === zabbixHostId;
-    });
+    const state = parseInt(zabbixItem.state, 10) || 0;
+    
+    if (zabbixItem.error?.trim()) {
+      return {
+        value: "Error",
+        units: "",
+        error: zabbixItem.error,
+        state,
+      };
+    }
 
-    let value = "N/A";
-    let units = itemConf.units || "";
-    let error = null;
-    let state = 0;
+    let value = zabbixItem.lastvalue;
+    let units = zabbixItem.units || confUnits;
 
-    if (zabbixItem) {
-      state = parseInt(zabbixItem.state, 10) || 0;
-      if (zabbixItem.error && zabbixItem.error.trim() !== "") {
-        error = zabbixItem.error;
-        value = "Error";
-        units = "";
+    if (displayUnits && typeof formatUnits === 'function' && value !== '') {
+      const sourceUnitsForFormatting = sourceUnits || units || 'B';
+      const formattedString = formatUnits(value, displayUnits, sourceUnitsForFormatting, decimals);
+      const parts = formattedString.split(' ');
+      
+      if (parts.length > 1 && parts[parts.length - 1].toLowerCase() === displayUnits.toLowerCase()) {
+        value = parts.slice(0, -1).join(' ');
+        units = parts[parts.length - 1];
       } else {
-        value = zabbixItem.lastvalue;
-        units = zabbixItem.units || "";
-
-        if (itemConf.displayUnits && typeof formatUnits === 'function') {
-          const sourceUnitsForFormatting = itemConf.sourceUnits || units || 'B';
-          const valueToFormat = (typeof zabbixItem.lastvalue === 'number' || typeof zabbixItem.lastvalue === 'string') ? zabbixItem.lastvalue : '';
-          
-          if (valueToFormat !== '') {
-            const formattedString = formatUnits(valueToFormat, itemConf.displayUnits, sourceUnitsForFormatting, itemConf.decimals);
-            const parts = formattedString.split(' ');
-            if (parts.length > 1 && parts[parts.length -1].toLowerCase() === itemConf.displayUnits.toLowerCase()) {
-              value = parts.slice(0, -1).join(' ');
-              units = parts[parts.length - 1];
-            } else {
-              value = formattedString;
-              units = (parts.length === 1 && itemConf.displayUnits) ? "" : units; 
-            }
-          } else {
-            value = "N/A (invalid value)";
-          }
-        }
+        value = formattedString;
+        units = parts.length === 1 && displayUnits ? "" : units;
       }
-    } else {
-      error = `Item '${configItemName}' not found for host ID '${zabbixHostId}'.`;
-      value = "N/A (not found)";
     }
 
     return {
       value: String(value),
-      units: units,
-      error: error,
-      state: state,
+      units,
+      error: null,
+      state,
     };
   });
 
+  const itemConf = () => props.itemConf;
+  const data = processedData();
+
   return (
     <li class="list-group-item d-flex justify-content-between">
-      <span class="fw-semibold small me-1" title={processedData().error || (props.itemConf?.itemName || 'Item')}>{props.itemConf?.displayName || 'Item'}:</span>
+      <span class="fw-semibold small me-1" title={data.error || itemConf()?.itemName || 'Item'}>
+        {itemConf()?.displayName || 'Item'}:
+      </span>
       <span class="badge bg-primary rounded-pill justify-content-end">
-        {processedData().value}
-        <Show when={processedData().units && processedData().value !== "Error" && !processedData().value.startsWith("N/A")}>
-          <span class="small ms-1">{processedData().units}</span>
+        {data.value}
+        <Show when={data.units && data.value !== "Error" && !data.value.startsWith("N/A")}>
+          <span class="small ms-1">{data.units}</span>
         </Show>
       </span>
     </li>

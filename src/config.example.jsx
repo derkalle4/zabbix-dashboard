@@ -24,7 +24,7 @@ const HOST_GROUPS_CONFIG = [
                 displayName: "Ballerbude",
                 hostName: 'CounterStrike.Party Ballerbude',
                 type: 'DefaultCard', // Optional, defaults to DefaultCard
-                itemConfigs: [
+                widgets: [
                     {
                         type: "compound",
                         displayName: "Players",
@@ -53,7 +53,7 @@ const HOST_GROUPS_CONFIG = [
             {
                 displayName: "Conquest",
                 hostName: 'CounterStrike.Party Conquest',
-                itemConfigs: [
+                widgets: [
                     {
                         type: "compound",
                         displayName: "Players",
@@ -73,7 +73,7 @@ const HOST_GROUPS_CONFIG = [
             {
                 displayName: "Wettkampf",
                 hostName: 'CounterStrike.Party Wettkampf',
-                itemConfigs: [
+                widgets: [
                     {
                         type: "compound",
                         displayName: "Players",
@@ -98,7 +98,7 @@ const HOST_GROUPS_CONFIG = [
             {
                 displayName: "Conquest",
                 hostName: 'Battlefield.onl Conquest',
-                itemConfigs: [
+                widgets: [
                     {
                         type: "compound",
                         displayName: "Players",
@@ -118,7 +118,7 @@ const HOST_GROUPS_CONFIG = [
             {
                 displayName: "Rushers Paradise",
                 hostName: 'Battlefield.onl Rushers Paradise',
-                itemConfigs: [
+                widgets: [
                     {
                         type: "compound",
                         displayName: "Players",
@@ -138,7 +138,7 @@ const HOST_GROUPS_CONFIG = [
             {
                 displayName: "SquadSmash",
                 hostName: 'Battlefield.onl SquadSmash',
-                itemConfigs: [
+                widgets: [
                     {
                         type: "compound",
                         displayName: "Players",
