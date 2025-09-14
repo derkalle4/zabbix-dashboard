@@ -48,6 +48,12 @@ const HOST_GROUPS_CONFIG = [
                         height: 30,
                         historyHours: 24,
                     },
+                    {
+                        type: "button",
+                        displayName: "Join Server",
+                        url: "steam://connect/144.76.221.102:27030",
+                        buttonStyle: "secondary",
+                    }
                 ]
             },
             {

@@ -2,6 +2,7 @@ import { For } from 'solid-js';
 import SingleItem from '../items/SingleItem';
 import CompoundItem from '../items/CompoundItem';
 import LineChartItem from '../items/LineChartItem';
+import ButtonItem from '../items/ButtonItem';
 
 function GameserverCard(props) {
   const host = () => props.host;
@@ -24,7 +25,8 @@ function GameserverCard(props) {
   const ItemComponent = {
     single: SingleItem,
     compound: CompoundItem,
-    linechart: LineChartItem
+    linechart: LineChartItem,
+    button: ButtonItem,
   };
 
   return (
