@@ -8,12 +8,14 @@ function HostView(props) {
   const zabbixHostId = () => host()?.zabbixHostId;
   const rawItemsForHost = () => host()?.items;
   const widgets = () => host()?.widgets || [];
+  const isLoading = () => host()?.loading;
 
   const hasError = () => host()?.error;
   const hasItems = () => rawItemsForHost()?.length > 0;
   const hasCompoundWidgets = () => widgets().some(ic => ic.type === 'compound');
   const hasWidgets = () => widgets().length > 0;
   const shouldShowCard = () => !hasError() && zabbixHostId() && (hasItems() || hasCompoundWidgets()) && hasWidgets();
+  const shouldShowLoadingCard = () => !hasError() && isLoading() && hasWidgets();
 
   return (
     <div class="host-view mb-3">
@@ -33,6 +35,12 @@ function HostView(props) {
         <div class="alert alert-warning p-2" role="alert">
           {hostDisplayName()}: Items are configured, but no (or empty) raw item data was found from Zabbix for this host.
         </div>
+      </Show>
+      
+      <Show when={shouldShowLoadingCard()}>
+        <Show when={host()?.type === 'GameserverCard'} fallback={<DefaultCard host={host()} />}>
+          <GameserverCard host={host()} />
+        </Show>
       </Show>
       
       <Show when={shouldShowCard()}>

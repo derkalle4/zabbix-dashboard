@@ -16,8 +16,8 @@ function CompoundItem(props) {
 
     if (!conf || !currentName || !totalName) {
       setCompoundData({ 
-        currentValue: 'N/A', 
-        totalValue: 'N/A', 
+        currentValue: '?', 
+        totalValue: '?', 
         units: conf?.displayUnits || '', 
         error: 'Config itemNames missing (current/total)' 
       });
@@ -32,7 +32,7 @@ function CompoundItem(props) {
     const currentItem = findItem(currentName);
     const totalItem = findItem(totalName);
     
-    let currentVal = 'N/A', totalVal = 'N/A', units = '', error = null;
+    let currentVal = '?', totalVal = '?', units = '', error = null;
 
     if (currentItem && totalItem) {
       units = conf.displayUnits || conf.sourceUnits || currentItem.units || totalItem.units || '';
@@ -44,8 +44,8 @@ function CompoundItem(props) {
         ].filter(Boolean);
         
         error = errors.join('; ');
-        currentVal = currentItem.error ? 'Error' : currentItem.lastvalue;
-        totalVal = totalItem.error ? 'Error' : totalItem.lastvalue;
+        currentVal = currentItem.error ? '?' : currentItem.lastvalue;
+        totalVal = totalItem.error ? '?' : totalItem.lastvalue;
       } else {
         currentVal = currentItem.lastvalue;
         totalVal = totalItem.lastvalue;
@@ -57,8 +57,8 @@ function CompoundItem(props) {
       if (!totalItem) missing.push(`Total ('${totalName}')`);
       
       error = `${missing.join(' and ')} missing`;
-      currentVal = currentItem?.lastvalue || 'N/A';
-      totalVal = totalItem?.lastvalue || 'N/A';
+      currentVal = currentItem?.lastvalue || '?';
+      totalVal = totalItem?.lastvalue || '?';
     }
     
     setCompoundData({ currentValue: currentVal, totalValue: totalVal, units, error });
@@ -79,9 +79,6 @@ function CompoundItem(props) {
         {String(compoundData().currentValue)} / {String(compoundData().totalValue)}
         <Show when={compoundData().units}>
           <span class="small me-2">{compoundData().units}</span>
-        </Show>
-        <Show when={compoundData().error}>
-          <span class="small me-1" title={compoundData().error}>(Error)</span>
         </Show>
       </span>
     </li>

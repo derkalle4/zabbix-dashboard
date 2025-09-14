@@ -4,8 +4,19 @@ import { loginToZabbix, getHostsByNames, getItemsData, getHistoryData } from '..
 import GroupView from './GroupView';
 
 function Dashboard() {
-    const [dashboardData, setDashboardData] = createSignal([]);
-    const [isLoading, setIsLoading] = createSignal(true);
+    const [dashboardData, setDashboardData] = createSignal(
+        HOST_GROUPS_CONFIG.map(groupConfig => ({
+            ...groupConfig,
+            hostsData: groupConfig.hosts.map(hostConfig => ({
+                ...hostConfig,
+                zabbixHostId: null,
+                items: [],
+                historyData: new Map(),
+                loading: true
+            }))
+        }))
+    );
+    const [setIsLoading] = createSignal(false);
     const [error, setError] = createSignal(null);
     const [authToken, setAuthToken] = createSignal(
         typeof window !== 'undefined' ? localStorage.getItem('zabbixAuthToken') : null
@@ -101,6 +112,7 @@ function Dashboard() {
                         zabbixHostId: null,
                         items: [],
                         historyData: new Map(),
+                        loading: false,
                         error: `Host not found in Zabbix.`
                     };
                 }
@@ -122,7 +134,8 @@ function Dashboard() {
                     ...hostConfig, 
                     zabbixHostId: hostId, 
                     items: itemsForHost,
-                    historyData: hostHistoryData
+                    historyData: hostHistoryData,
+                    loading: false
                 };
             })
         }));
@@ -164,6 +177,16 @@ function Dashboard() {
             console.error("Failed to fetch dashboard data:", err);
             setError(err.message || "An unknown error occurred.");
             handleAuthError(err);
+            
+            // On error, update existing hosts to show error state but keep them visible
+            setDashboardData(current => current.map(group => ({
+                ...group,
+                hostsData: group.hostsData.map(host => ({
+                    ...host,
+                    loading: false,
+                    error: err.message || "Failed to load data"
+                }))
+            })));
         } finally {
             setIsLoading(false);
         }
@@ -178,13 +201,10 @@ function Dashboard() {
     return (
         <div class="dashboard-container p-4">
             <h1 class="text-2xl font-bold mb-4">{APP_CONFIG.pageTitle}</h1>
-            {isLoading() && <p>Loading dashboard data...</p>}
             {error() && <p class="text-red-500">Error: {error()}</p>}
-            {!isLoading() && !error() && (
-                <For each={dashboardData()}>
-                    {(group) => <GroupView group={group} />}
-                </For>
-            )}
+            <For each={dashboardData()}>
+                {(group) => <GroupView group={group} />}
+            </For>
         </div>
     );
 }

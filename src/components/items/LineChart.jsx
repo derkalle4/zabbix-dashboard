@@ -72,7 +72,7 @@ function LineChart(props) {
     
     if (!item) {
       return {
-        error: itemConf?.itemName ? `Item '${itemConf.itemName}' not found` : "Missing data",
+        error:  "Missing data",
         minValue: 0,
         maxValue: 100,
         height: itemConf?.height || 30
@@ -152,8 +152,10 @@ function LineChart(props) {
   return (
     <li class="list-group-item p-1">
       <Show when={chartConfig().error}>
-        <div class="alert alert-warning py-1 px-2 small mb-1">
-          {chartConfig().error}
+        <div class="d-flex justify-content-center align-items-center" style={`height: ${chartConfig().height}px; position: relative;`}>
+          <span class="text-center">
+            {chartConfig().error}
+          </span>
         </div>
       </Show>
       <Show when={!chartConfig().error}>

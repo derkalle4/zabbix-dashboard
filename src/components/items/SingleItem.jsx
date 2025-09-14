@@ -8,7 +8,7 @@ function SingleItem(props) {
 
     if (!itemName || !Array.isArray(rawItems) || !hostId) {
       return {
-        value: "N/A",
+        value: "?",
         units: confUnits,
         error: !itemName ? "Configuration missing" : !hostId ? "Host ID missing" : "Raw items data not available",
         state: 0,
@@ -21,7 +21,7 @@ function SingleItem(props) {
 
     if (!zabbixItem) {
       return {
-        value: "N/A (not found)",
+        value: "? (not found)",
         units: confUnits,
         error: `Item '${itemName}' not found for host ID '${hostId}'.`,
         state: 0,
@@ -74,7 +74,7 @@ function SingleItem(props) {
       </span>
       <span class="badge bg-primary rounded-pill justify-content-end">
         {data.value}
-        <Show when={data.units && data.value !== "Error" && !data.value.startsWith("N/A")}>
+        <Show when={data.units && data.value !== "Error" && !data.value.startsWith("?")}>
           <span class="small ms-1">{data.units}</span>
         </Show>
       </span>
