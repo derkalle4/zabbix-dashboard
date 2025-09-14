@@ -206,9 +206,9 @@ function Dashboard() {
         <div class="dashboard-container p-4">
             <h1 class="text-2xl font-bold mb-4">{APP_CONFIG.pageTitle}</h1>
             <div class="mb-2 text-sm text-gray-600">
-                {queryStatus()}
+                {error() ? <p class="text-red-500">Error: {error()}</p> : queryStatus()}
             </div>
-            {error() && <p class="text-red-500">Error: {error()}</p>}
+            
             <For each={dashboardData()}>
                 {(group) => <GroupView group={group} />}
             </For>
