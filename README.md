@@ -22,7 +22,8 @@ This frontend needs a separate zabbix account which is READ ONLY for the given h
 
 2. **Install dependencies**
     ```bash
-    npm install -D vite
+    cd ./zabbix-dashboard/
+    npm install .
     ```
 
 3. **Start development server**
