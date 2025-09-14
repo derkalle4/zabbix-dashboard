@@ -10,6 +10,7 @@ async function zabbixApiRequest(method, params, authToken = null) {
 
     const headers = {
         'Content-Type': 'application/json-rpc',
+        'Accept-Encoding': 'gzip, deflate, br', // Request compression
     };
 
     if (authToken) {
@@ -79,11 +80,31 @@ export async function getItemsData(authToken, hostIds, itemKeys = null) {
     return await zabbixApiRequest('item.get', params, authToken);
 }
 
-export async function getHistoryData(authToken, itemId, timeFrom, timeTill = null) {
+export async function getHistoryData(authToken, itemId, timeFrom, timeTill = null, useTrends = false) {
     if (!authToken) throw new Error("Authentication token is required for getHistoryData.");
     
+    if (useTrends) {
+        // First check if the item supports trends (numeric types only)
+        const items = await zabbixApiRequest('item.get', {
+            output: ['itemid', 'value_type'],
+            itemids: Array.isArray(itemId) ? itemId : [itemId]
+        }, authToken);
+        
+        const hasNonNumericItems = items.some(item => 
+            !['0', '3'].includes(item.value_type) // 0=float, 3=integer
+        );
+        
+        if (hasNonNumericItems) {
+            console.warn('Some items are not numeric, falling back to history.get');
+            useTrends = false;
+        }
+    }
+    
+    const method = useTrends ? 'trend.get' : 'history.get';
+    const output = useTrends ? ['itemid', 'clock', 'value_avg', 'value_min', 'value_max'] : 'extend';
+    
     const params = {
-        output: 'extend',
+        output: output,
         itemids: Array.isArray(itemId) ? itemId : [itemId],
         time_from: timeFrom,
         sortfield: 'clock',
@@ -94,5 +115,13 @@ export async function getHistoryData(authToken, itemId, timeFrom, timeTill = nul
         params.time_till = timeTill;
     }
     
-    return await zabbixApiRequest('history.get', params, authToken);
+    const result = await zabbixApiRequest(method, params, authToken);
+    
+    // If trends return empty but we expected data, fallback to history
+    if (useTrends && (!result || result.length === 0)) {
+        console.warn('Trends returned empty, falling back to history.get');
+        return await getHistoryData(authToken, itemId, timeFrom, timeTill, false);
+    }
+    
+    return result;
 }
