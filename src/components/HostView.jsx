@@ -1,4 +1,4 @@
-import { For, Show } from 'solid-js';
+import { Show } from 'solid-js';
 import DefaultCard from './cards/DefaultCard';
 import GameserverCard from './cards/GameserverCard';
 

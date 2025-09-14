@@ -76,7 +76,7 @@ function CompoundItem(props) {
         {props.itemConf?.displayName || 'Compound Item'}:
       </span>
       <span class="badge bg-success rounded-pill justify-content-end">
-        {String(compoundData().currentValue)}/{String(compoundData().totalValue)}
+        {String(compoundData().currentValue)} / {String(compoundData().totalValue)}
         <Show when={compoundData().units}>
           <span class="small me-2">{compoundData().units}</span>
         </Show>
