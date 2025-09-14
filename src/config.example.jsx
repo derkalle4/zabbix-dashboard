@@ -13,7 +13,8 @@ const ZABBIX_CONFIG = {
 const HOST_GROUPS_CONFIG = [
     {
         groupName: 'Counterstrike',
-        sort_by: 0, // host item column index to sort by, 0 = first item in itemConfigs
+        sort_by: "players", // host item name to sort by (no sorting if undefined)
+        sort_type: "numeric", // "numeric" or "string", defaults to "numeric"
         sort_desc: true, // sort descending
         colum_size: 12,
         column_size_medium: 6,
