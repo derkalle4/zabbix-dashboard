@@ -42,6 +42,47 @@ npm run build
 ### Deploy
 Upload the contents of the `dist` folder to your web server's public directory.
 
+## FAQ
+
+### How to reduce the transfered data?
+
+Enable compression on the server side. This example shows you how to configure NGINX properly to enable gzip compression.
+
+```
+server {
+    # ... your existing configuration ...
+    
+    # Enable gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_comp_level 6;
+    gzip_types
+        application/json
+        application/json-rpc
+        text/plain
+        text/css
+        text/xml
+        text/javascript
+        application/xml+rss
+        application/javascript
+        application/atom+xml
+        image/svg+xml;
+    
+    location / {
+        # Your existing proxy settings
+        proxy_pass http://your-zabbix-backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Enable compression for proxied responses
+        proxy_set_header Accept-Encoding gzip;
+    }
+}
+```
+
 ---
 
 *Ready to monitor your infrastructure with style! 📊*
