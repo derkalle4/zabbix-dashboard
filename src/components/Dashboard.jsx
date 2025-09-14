@@ -16,8 +16,9 @@ function Dashboard() {
             }))
         }))
     );
-    const [setIsLoading] = createSignal(false);
+    const [isLoading, setIsLoading] = createSignal(false);
     const [error, setError] = createSignal(null);
+    const [queryStatus, setQueryStatus] = createSignal("not yet queried");
     const [authToken, setAuthToken] = createSignal(
         typeof window !== 'undefined' ? localStorage.getItem('zabbixAuthToken') : null
     );
@@ -143,6 +144,7 @@ function Dashboard() {
 
     async function fetchData() {
         setIsLoading(true);
+        setQueryStatus("waiting for response");
         setError(null);
 
         try {
@@ -173,9 +175,11 @@ function Dashboard() {
             const processedGroupData = processGroupData(hostIdMap, itemsByHostId, historyByItemId);
             
             setDashboardData(processedGroupData);
+            setQueryStatus(`last queried at ${new Date().toLocaleTimeString()}`);
         } catch (err) {
             console.error("Failed to fetch dashboard data:", err);
             setError(err.message || "An unknown error occurred.");
+            setQueryStatus("failed to query");
             handleAuthError(err);
             
             // On error, update existing hosts to show error state but keep them visible
@@ -201,6 +205,9 @@ function Dashboard() {
     return (
         <div class="dashboard-container p-4">
             <h1 class="text-2xl font-bold mb-4">{APP_CONFIG.pageTitle}</h1>
+            <div class="mb-2 text-sm text-gray-600">
+                {queryStatus()}
+            </div>
             {error() && <p class="text-red-500">Error: {error()}</p>}
             <For each={dashboardData()}>
                 {(group) => <GroupView group={group} />}
