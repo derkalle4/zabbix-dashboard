@@ -53,6 +53,7 @@ const HOST_GROUPS_CONFIG = [
                         displayName: "Join Server",
                         url: "steam://connect/144.76.221.102:27030",
                         buttonStyle: "secondary",
+                        newWindow: false, // false is default
                     }
                 ]
             },

@@ -70,7 +70,7 @@ function ButtonItem(props) {
   return (
     <a 
       href={itemConf()?.url || '#'} 
-      target="_blank" 
+      target={itemConf()?.newWindow ? "_blank" : undefined}
       rel="noopener noreferrer" 
       class={`btn btn-${itemConf()?.buttonStyle || 'primary'}`}
     >
